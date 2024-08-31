@@ -12,7 +12,7 @@ Spotify Autoplaylists is a Python project that automatically curates and cluster
 Before running the project, you should define your selected playlists by creating a CSV file with the following structure.
 
 ```
-playlist_name,playlist_id,link 
+playlist_name,playlist_id 
 Electro chill,37i9dQZF1DX9ND1QF5hZNF
 Hard Rock,37i9dQZF1DX1X7WV84927n
 ```
