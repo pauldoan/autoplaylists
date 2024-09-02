@@ -28,8 +28,47 @@ response.raise_for_status()  # Raise an exception for HTTP errors
 access_token = response.json()["access_token"]
 
 
+# function to get hit Spotfy API and get playlist metadata
+def get_playlist_metadata(playlist_id, access_token=access_token):
+    """
+    Fetch metadata for a Spotify playlist.
+    
+    Parameters:
+    - playlist_id: The Spotify playlist ID
+    - access_token: Your Spotify API Bearer token
+
+    Returns:
+    - A dictionary containing the playlist metadata
+    """
+    url = f"https://api.spotify.com/v1/playlists/{playlist_id}"
+    headers = {'Authorization': f'Bearer {access_token}'}
+    
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+
+        # Extract relevant metadata
+        metadata = {
+            "playlist_name": data["name"],
+            "playlist_id": data["id"],
+            "owner": data["owner"]["display_name"],
+            "description": data["description"],
+            "followers": data["followers"]["total"],
+            "link": data["external_urls"]["spotify"],
+            "image": data["images"][0]["url"],
+
+        }
+        
+        return metadata
+    
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed: {e}")
+        return None
+
+
 # function to get hit Spotfy API and get playlist tracks
-def get_playlist_tracks(playlist_id, access_token):
+def get_playlist_tracks(playlist_id, access_token=access_token):
     """
     Fetch all tracks from a Spotify playlist.
     
@@ -38,7 +77,7 @@ def get_playlist_tracks(playlist_id, access_token):
     - access_token: Your Spotify API Bearer token
 
     Returns:
-    - A list of all tracks in the playlist
+    - A dataframe of all tracks in the playlist
     """
     url = f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks"
     headers = {'Authorization': f'Bearer {access_token}'}
@@ -84,7 +123,7 @@ def get_playlist_tracks(playlist_id, access_token):
     return df
 
 
-def get_audio_features(track_ids, access_token):
+def get_audio_features(track_ids, access_token=access_token):
     """
     Fetch audio features for a list of Spotify track IDs and return them as a DataFrame.
     
