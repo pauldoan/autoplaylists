@@ -28,6 +28,70 @@ response.raise_for_status()  # Raise an exception for HTTP errors
 access_token = response.json()["access_token"]
 
 
+
+# ---------------------------------------------------------------------------- #
+#                                Tracks metatada                               #
+# ---------------------------------------------------------------------------- #
+
+
+# function to get hit Spotfy API and get playlist metadata
+def get_tracks_metadata(track_ids, access_token=access_token):
+    """
+    Fetch metadata for a Spotify tracks.
+    
+    Parameters:
+    - track_ids: A list or array of Spotify track IDs.
+    - access_token: Your Spotify API Bearer token
+
+    Returns:
+    - A dataframe containing the tracks metadata
+    """
+    endpoint = f"https://api.spotify.com/v1/tracks"
+    headers = {'Authorization': f'Bearer {access_token}'}
+    
+    # Initialize a list to hold all tracks data
+    all_tracks = []
+    
+    # Spotify API allows max 100 IDs per request, so we process in batches
+    batch_size = 50
+    if isinstance(track_ids, str):
+        track_ids = [track_ids]
+
+    # looping through the track_ids in batches 
+    for i in range(0, len(track_ids), batch_size):
+        batch_ids = track_ids[i:i + batch_size]
+        ids = ','.join(batch_ids)
+        params = {'ids': ids}
+        
+        try:
+            # Make a GET request to the audio features endpoint
+            response = requests.get(endpoint, headers=headers, params=params)
+            response.raise_for_status()  # Raise an exception for HTTP errors
+            tracks_meta = response.json()
+            all_tracks.extend(tracks_meta['tracks'])
+
+        except requests.exceptions.RequestException as e:
+            print(f"Request failed: {e}")
+            continue
+
+    # Convert the list of tracks to a DataFrame
+    all_tracks = pd.DataFrame(all_tracks)
+    
+    # dropping unnecessary columns
+    all_tracks = all_tracks[
+        [
+            'id', 'name', 'album', 'artists', 'available_markets', 'disc_number', 'duration_ms', 'explicit', 
+            'external_ids', 'external_urls', 'is_local', 'popularity', 'preview_url', 'track_number', 'type', 'uri'
+        ]].reset_index(drop=True)
+    
+    return all_tracks
+
+
+# ---------------------------------------------------------------------------- #
+#                               PLaylist Metadata                              #
+# ---------------------------------------------------------------------------- #
+
+
 # function to get hit Spotfy API and get playlist metadata
 def get_playlist_metadata(playlist_id, access_token=access_token):
     """
@@ -66,6 +130,10 @@ def get_playlist_metadata(playlist_id, access_token=access_token):
         print(f"Request failed: {e}")
         return None
 
+
+# ---------------------------------------------------------------------------- #
+#                              Playlist track list                             #
+# ---------------------------------------------------------------------------- #
 
 # function to get hit Spotfy API and get playlist tracks
 def get_playlist_tracks(playlist_id, access_token=access_token):
@@ -122,6 +190,10 @@ def get_playlist_tracks(playlist_id, access_token=access_token):
     
     return df
 
+
+# ---------------------------------------------------------------------------- #
+#                             Tracks audio features                            #
+# ---------------------------------------------------------------------------- #
 
 def get_audio_features(track_ids, access_token=access_token):
     """
