@@ -224,13 +224,18 @@ def build_train(df, epochs=10, hidden_sizes=[8, 8], lr=0.01):
     y_pred_class = y_pred.argmax(dim=1).numpy()
 
     # printing a little classification report
-    print(classification_report(y_test_encoded, y_pred_class, target_names=label_encoder.classes_))
+    class_report = classification_report(
+        y_test_encoded, y_pred_class, target_names=label_encoder.classes_, output_dict=True
+    )
 
-    return model, history, label_encoder, scaler
+    # Convert the dictionary to a DataFrame
+    class_report = pd.DataFrame(class_report).transpose()
+
+    return model, label_encoder, scaler, history, class_report
 
 
 # ---------------------------------------------------------------------------- #
-#                               Plotting function                              #
+#                               Plotting function                             #
 # ---------------------------------------------------------------------------- #
 
 
@@ -253,7 +258,8 @@ def plot_training_history(history):
     sns.lineplot(val_acc_hist, ax=axes[1], label="Validation Acc")
     axes[1].set_title("Accuracy")
     axes[1].legend()
-    plt.show()
+
+    return fig, axes
 
 
 # ---------------------------------------------------------------------------- #
