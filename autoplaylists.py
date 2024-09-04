@@ -124,6 +124,7 @@ with tabs[0]:
         metadata_df = metadata_df[["image", "playlist_name", "owner", "description", "followers", "link"]]
         st.markdown(metadata_df.to_html(escape=False, index=False), unsafe_allow_html=True)
 
+
 # ---------------------------------------------------------------------------- #
 #                     Display playlist audio features comparison               #
 # ---------------------------------------------------------------------------- #
@@ -147,7 +148,9 @@ with tabs[1]:
         ]
 
         # Streamlit multiselect menu for selecting features
-        selected_features = st.multiselect("Select features to analyze", feature_options, default=feature_options[:3])
+        selected_features = st.multiselect(
+            "Select features to analyze", feature_options, default=["energy", "danceability", "loudness"]
+        )
 
         # Check if any features are selected
         if selected_features:
@@ -160,16 +163,15 @@ with tabs[1]:
             # Loop through each selected feature and create a barplot
             for idx, feature in enumerate(selected_features):
                 with cols[idx % 3]:
-                    st.subheader(f"Average {feature.capitalize()} by Playlist")
 
                     # Create plot per feature
                     fig, ax = plt.subplots(figsize=(6, 4), dpi=150)
-                    sns.barplot(data=df_features, x="playlist_name", y=feature, palette="muted", ax=ax)
+                    sns.barplot(data=df_features, y="playlist_name", x=feature, palette="muted", ax=ax)
 
                     # Titles and labels
-                    ax.set_xlabel("Playlist")
-                    ax.set_ylabel(f"{feature.capitalize()}")
-                    ax.set_title(f"Average {feature.capitalize()} by Playlist")
+                    ax.set_xlabel(f"{feature.capitalize()}")
+                    ax.set_ylabel("")
+                    plt.tight_layout()
 
                     # Render the plot in Streamlit
                     st.pyplot(fig)
@@ -202,7 +204,7 @@ with tabs[2]:
         ]
         # build streamlit multi-select menu
         features = st.multiselect(
-            "Select features to analyze", features_options, default=["popularity", "energy", "valence"]
+            "Select features to analyze", features_options, default=["acousticness", "energy", "valence"]
         )
         # Create columns for better layout
         cols = st.columns(3)
@@ -225,7 +227,7 @@ with tabs[2]:
                 # labels and title
                 ax.set_xlabel(feature.capitalize())
                 ax.set_ylabel("Count")
-                ax.set_title(f"{feature.capitalize()} Distribution by Playlist", fontsize=14)
+                ax.set_title(f"{feature.capitalize()} Distribution by Playlist")
 
                 # Tighter layout for adaptive margins
                 plt.tight_layout()
@@ -371,6 +373,7 @@ with tabs[4]:
                 with col[0]:
                     fig, ax = plt.subplots()
                     sns.barplot(x=list(prob_dict.keys()), y=list(prob_dict.values()), ax=ax, palette=palette)
+                    plt.xticks(rotation=45, ha="right")
                     st.pyplot(fig)
 
     else:
