@@ -294,3 +294,27 @@ def model_inference(df, model, scaler, label_encoder):
     df["all_probabilities"] = genre_probs
 
     return df
+
+
+# ---------------------------------------------------------------------------- #
+#                           include track to playlist                          #
+# ---------------------------------------------------------------------------- #
+
+
+def include_tracks_to_playlist(df, model, scaler, label_encoder, target_playlist_name, probability_threshold=0.75):
+
+    # run inference
+    df = model_inference(df, model, scaler, label_encoder)
+
+    # filter data
+    target_playlist_df = df[["id", "name", "artist", "all_probabilities"]].copy()
+    target_playlist_df["target_playlist_name"] = target_playlist_name
+    target_playlist_df["target_playlist_probability"] = target_playlist_df["all_probabilities"].apply(
+        lambda x: x[target_playlist_name]
+    )
+
+    # flag based on probability threshold
+    target_playlist_df["include_in_playlist"] = (
+        target_playlist_df["target_playlist_probability"] > probability_threshold
+    )
+    return target_playlist_df
