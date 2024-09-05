@@ -21,6 +21,7 @@ st.title("Spotify Autoplaylists 🎧")
 tabs = st.tabs(
     [
         "Home",
+        "Track list",
         "Audio Feature Comparison",
         "Audio Feature Distribution",
         "Modeling",
@@ -34,7 +35,6 @@ tabs = st.tabs(
 #                         Fetching playlist information                       #
 # ---------------------------------------------------------------------------- #
 
-# Tab 1: Input & Analyze
 with tabs[0]:
 
     st.subheader("Welcome to the Spotify Autoplaylists App")
@@ -126,11 +126,49 @@ with tabs[0]:
 
 
 # ---------------------------------------------------------------------------- #
+#                                  Track list                                  #
+# ---------------------------------------------------------------------------- #
+
+with tabs[1]:
+
+    if "tracks_df" in st.session_state:
+        st.header("Track List")
+
+        # streamlist select box for selecting playlist
+        selected_playlist = st.selectbox("Select a Playlist", st.session_state["tracks_df"]["playlist_name"].unique())
+
+        # filter the tracks
+        tracks = st.session_state["tracks_df"][st.session_state["tracks_df"]["playlist_name"] == selected_playlist]
+
+        # extract artist name for easier reading
+        tracks["artist"] = tracks["artists"].apply(lambda x: x[0]["name"])
+
+        feature_options = [
+            "danceability",
+            "energy",
+            "loudness",
+            "speechiness",
+            "acousticness",
+            "instrumentalness",
+            "liveness",
+            "valence",
+        ]
+
+        # filter dataframe for better display
+        tracks = tracks[["id", "name", "artist", "duration_ms", "popularity"] + feature_options]
+
+        # display the track list
+        st.dataframe(tracks)
+
+    else:
+        st.warning("Please analyze the playlists first.")
+
+
+# ---------------------------------------------------------------------------- #
 #                     Display playlist audio features comparison               #
 # ---------------------------------------------------------------------------- #
 
-# Tab 2: Audio Feature Comparison
-with tabs[1]:
+with tabs[2]:
     if "tracks_df" in st.session_state:
         st.header("Audio Feature Comparison Across Playlists")
 
@@ -185,8 +223,7 @@ with tabs[1]:
 # ---------------------------------------------------------------------------- #
 
 
-# Tab 3: Feature Histograms
-with tabs[2]:
+with tabs[3]:
     if "tracks_df" in st.session_state:
         st.header("In-Playlist Feature Histograms")
 
@@ -242,8 +279,7 @@ with tabs[2]:
 #                                   Modeling                                   #
 # ---------------------------------------------------------------------------- #
 
-# Tab 4: Playlist modeling
-with tabs[3]:
+with tabs[4]:
     if "tracks_df" in st.session_state:
         st.header("Playlist features modeling")
 
@@ -322,8 +358,7 @@ with tabs[3]:
 #                                   Recommendations                           #
 # ---------------------------------------------------------------------------- #
 
-# Tab 4: Playlist modeling
-with tabs[4]:
+with tabs[5]:
     if "model" in st.session_state:
         st.header("Playlist features modeling")
 
@@ -360,6 +395,13 @@ with tabs[4]:
                 # subheader with track name and artist
                 st.subheader(f"{track_recommendation['name'].values[0]} by {track_recommendation['artist'].values[0]}")
 
+                # Embed the audio preview
+                preview_url = track_recommendation["preview_url"].values[0]
+                if pd.notna(preview_url):  # Ensure the URL is not NaN
+                    st.audio(preview_url)
+                else:
+                    st.write("No audio preview available for this track.")
+
                 # display recommendation
                 st.write("Best Playlist recommendation:", track_recommendation["predicted_label"].values[0])
                 st.write(
@@ -384,8 +426,7 @@ with tabs[4]:
 #                                   Playlist Management                        #
 # ---------------------------------------------------------------------------- #
 
-# Tab 4: Playlist modeling
-with tabs[5]:
+with tabs[6]:
     if "model" in st.session_state:
         st.header("Playlist Management")
 
@@ -435,6 +476,13 @@ with tabs[5]:
 
                 # subheader with track name and artist
                 st.subheader(f"{track_include['name'].values[0]} by {track_include['artist'].values[0]}")
+
+                # Embed the audio preview
+                preview_url = track_df_include[track_df_include.id == track_id]["preview_url"].values[0]
+                if pd.notna(preview_url):  # Ensure the URL is not NaN
+                    st.audio(preview_url)
+                else:
+                    st.write("No audio preview available for this track.")
 
                 # display recommendation
                 st.write(
