@@ -42,12 +42,18 @@ with tabs[0]:
     # Add a brief description of the app
     st.markdown(
         """
-    **Spotify Autoplaylists** is an interactive web application that helps you analyze and manage your playlists based on audio features.
-    Once you provide playlists, the app will fetch the data, analyze it, and provide insights!
-    You can:
-    - Compare audio features like energy, danceability, and more between playlists.
-    - Get playlist recommendations for a new track using a machine learning model trained on the playlists
-    - Manage and decide whether to add new tracks to an existing playlist based on their features.
+    **Spotify Autoplaylists** is an interactive web application that helps you analyze and manage playlists, like a Curator, based on tracks audio features.
+    Once you provide playlists, the app will fetch the playlists data and track lists, analyze it, and provide insights!
+    
+    **Key Features:**
+    - **Home**: Get an overview of the app and provide playlist IDs to analyze
+    - **Track List**: View the tracks in the playlists with their audio features
+    - **Audio Feature Comparison**: Compare audio features accross playlists like energy, danceability, and more
+    - **Audio Feature Distribution**: Visualize the distribution of audio features within playlists
+    - **Statistical tests**: Perform statistical tests to compare audio features across playlists (COMING SOON)
+    - **Modeling**: Build, train and tune a Deep Learning model to understand the audio features and predict the ideal playlist for a track
+    - **Recommendations**: Get playlist recommendations for a unseen track using the trained model
+    - **Playlist Management**: Curate a playlist by deciding whether to add a new tracks based on its features
 
     Simply provide the playlist IDs, click on `Analyze`, and the app will do the rest!
     """
@@ -61,7 +67,7 @@ with tabs[0]:
     playlist_ids = [pid.strip() for pid in playlist_ids.split(",")]
 
     # Button to submit the input
-    if st.button("Analyze Playlists 🤖"):
+    if st.button("Analyze Playlists 🎵"):
 
         with st.spinner("Fetching playlist data from Spotify... 🚀"):
 
@@ -172,6 +178,8 @@ with tabs[2]:
     if "tracks_df" in st.session_state:
         st.header("Audio Feature Comparison Across Playlists")
 
+        st.markdown("""In this section, you can compare the audio features of the tracks across different playlists.""")
+
         # Define available features for the multiselect menu
         feature_options = [
             "danceability",
@@ -226,6 +234,8 @@ with tabs[2]:
 with tabs[3]:
     if "tracks_df" in st.session_state:
         st.header("In-Playlist Feature Histograms")
+
+        st.markdown("""In this section, you can visualize the distrbution of audio features within playlists.""")
 
         # allow user to select the feature with multiselect menu on streamlit
         features_options = [
@@ -283,13 +293,26 @@ with tabs[4]:
     if "tracks_df" in st.session_state:
         st.header("Playlist features modeling")
 
+        # adding a little description explaning that the model will be a Dense Neural Network with dropout
+        st.markdown(
+            """
+        In this section, you can build a Deep Learning model to predict the playlist based on the audio features of the tracks.
+        The model will be a simple Dense Neural Network with dropout layers to prevent overfitting.
+        The model will use ReLU activation functions for the hidden layers.
+        The model will be trained on the audio features of the tracks to predict the playlist.
+        """
+        )
+
         # streamlit input for hidden layer sizes
         hidden_sizes = st.text_input("Enter hidden layer sizes", "8,8")
         # convert to list of integers
         hidden_sizes = [int(size) for size in hidden_sizes.split(",")]
 
+        # streamlit slider for the dropout rate
+        dropout = st.slider("Select dropout rate", 0.0, 0.5, 0.1)
+
         # streamlit int slider for epochs
-        epochs = st.slider("Select number of epochs", 1, 50, 5)
+        epochs = st.slider("Select number of epochs", 1, 50, 10)
 
         # streamlist slider for learning rate
         lr = st.slider("Select learning rate", 0.001, 0.1, 0.01)
@@ -302,53 +325,63 @@ with tabs[4]:
         button_label = "Retrain Model" if st.session_state["model_trained"] else "Build and Train Model"
 
         if st.button(button_label):
-            # Build and train/retrain the model
-            model, label_encoder, scaler, history, class_report = modeling.build_train(
-                st.session_state["tracks_df"], epochs=epochs, hidden_sizes=hidden_sizes, lr=lr
-            )
 
-            # Store the model and other objects in session state
-            st.session_state["model"] = model
-            st.session_state["label_encoder"] = label_encoder
-            st.session_state["scaler"] = scaler
-            st.session_state["model_trained"] = True  # Update flag once model is trained
+            with st.spinner("Building & Training Neural Network... 🤖"):
+                # Build and train/retrain the model
+                model, label_encoder, scaler, history, class_report = modeling.build_train(
+                    st.session_state["tracks_df"],
+                    epochs=epochs,
+                    hidden_sizes=hidden_sizes,
+                    lr=lr,
+                    dropout=dropout,
+                )
 
-            # Success message
-            st.success(f"{button_label} completed successfully!")
+                # Store the model and other objects in session state
+                st.session_state["model"] = model
+                st.session_state["label_encoder"] = label_encoder
+                st.session_state["scaler"] = scaler
+                st.session_state["model_trained"] = True  # Update flag once model is trained
 
-            # Print the classification report dataframe
-            st.subheader("Classification Report")
-            st.dataframe(class_report)
+                # Success message
+                st.success(f"{button_label} completed successfully!")
 
-            # Plot the training history using two columns
-            st.subheader("Model Loss")
-            # Create two columns
-            col1, col2 = st.columns(2)
+                # Print the main performance metrics
+                st.subheader("Classification Report")
+                accuracy = round(class_report.loc[["accuracy"], :].iloc[:, 0].values[0], 3)
+                weighted_f1 = round(class_report.loc[["weighted avg"], "f1-score"].values[0], 3)
+                st.write(f"Model Accuracy: {accuracy}")
+                st.write(f"Weighted F1 Score: {weighted_f1}")
+                st.dataframe(class_report)
 
-            # extracting training history
-            train_loss_hist = history["train_loss"]
-            val_loss_hist = history["valid_loss"]
-            train_acc_hist = history["train_acc"]
-            val_acc_hist = history["valid_acc"]
+                # Plot the training history using two columns
+                st.subheader("Model Loss")
+                # Create two columns
+                col1, col2 = st.columns(2)
 
-            with col1:
-                # Plot only the first axis (training loss)
-                fig_train, ax_train = plt.subplots()
-                sns.lineplot(train_loss_hist, ax=ax_train, label="Training loss")
-                sns.lineplot(val_loss_hist, ax=ax_train, label="Validation loss")
-                ax_train.set_title("Loss")
-                ax_train.legend()
-                st.pyplot(fig_train)  # Render training loss
+                # extracting training history
+                train_loss_hist = history["train_loss"]
+                val_loss_hist = history["valid_loss"]
+                train_acc_hist = history["train_acc"]
+                val_acc_hist = history["valid_acc"]
 
-            with col2:
-                # Plot only the second axis (validation loss)
-                fig_val, ax_val = plt.subplots()
-                sns.lineplot(train_acc_hist, ax=ax_val, label="Training Acc")
-                sns.lineplot(val_acc_hist, ax=ax_val, label="Validation Acc")
-                ax_val.set_title("Accuracy")
-                ax_val.legend()
+                with col1:
+                    # Plot only the first axis (training loss)
+                    fig_train, ax_train = plt.subplots()
+                    sns.lineplot(train_loss_hist, ax=ax_train, label="Training loss")
+                    sns.lineplot(val_loss_hist, ax=ax_train, label="Validation loss")
+                    ax_train.set_title("Loss")
+                    ax_train.legend()
+                    st.pyplot(fig_train)  # Render training loss
 
-                st.pyplot(fig_val)  # Render validation loss
+                with col2:
+                    # Plot only the second axis (validation loss)
+                    fig_val, ax_val = plt.subplots()
+                    sns.lineplot(train_acc_hist, ax=ax_val, label="Training Acc")
+                    sns.lineplot(val_acc_hist, ax=ax_val, label="Validation Acc")
+                    ax_val.set_title("Accuracy")
+                    ax_val.legend()
+
+                    st.pyplot(fig_val)  # Render validation loss
 
     else:
         st.warning("Please analyze the playlists first.")
@@ -361,6 +394,10 @@ with tabs[4]:
 with tabs[5]:
     if "model" in st.session_state:
         st.header("Playlist features modeling")
+
+        st.markdown(
+            """This section allows you to get playlist recommendations for a track based on its audio features."""
+        )
 
         # streamlit input for track ids
         track_ids = st.text_input(
@@ -429,6 +466,10 @@ with tabs[5]:
 with tabs[6]:
     if "model" in st.session_state:
         st.header("Playlist Management")
+
+        st.markdown(
+            """This section allows you to curate a playlist by deciding whether to include new tracks based on their audio features."""
+        )
 
         # streamlit input for selecting a target playlist
         target_playlist = st.selectbox(

@@ -161,7 +161,7 @@ def train_model(model, train_loader, eval_loader, optimizer, device="cpu", epoch
 # ---------------------------------------------------------------------------- #
 
 
-def build_train(df, epochs=10, hidden_sizes=[8, 8], lr=0.01):
+def build_train(df, epochs=10, hidden_sizes=[8, 8], lr=0.01, activation=F.relu, dropout=0.1):
 
     # extracting independent variables
     X = df[features]
@@ -207,12 +207,23 @@ def build_train(df, epochs=10, hidden_sizes=[8, 8], lr=0.01):
     # initializing the model
     input_size = X_train_scaled.shape[1]
     output_size = len(label_encoder.classes_)
-    model = NeuralNet(input_size, hidden_sizes, output_size)
+    model = NeuralNet(
+        input_size,
+        hidden_sizes,
+        output_size,
+        activation=activation,
+        dropout=dropout,
+    )
 
     # training the model
     optimizer = torch.optim.Adam(model.parameters(), lr=lr)
     model, history = train_model(
-        model, train_loader=train_loader, eval_loader=test_loader, optimizer=optimizer, device="cpu", epochs=epochs
+        model,
+        train_loader=train_loader,
+        eval_loader=test_loader,
+        optimizer=optimizer,
+        device="cpu",
+        epochs=epochs,
     )
 
     # evaluation on the test set

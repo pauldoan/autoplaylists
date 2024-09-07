@@ -1,12 +1,18 @@
 # Spotify Autoplaylists
 
-Spotify Autoplaylists is a Python project that automatically curates and clusters Spotify tracks based on metadata to build personalized playlists. This tool helps to create musical experiences tailored to specific moods, genres, or other criteria.
+Spotify Autoplaylists is an interactive web application that automatically retrieves and analyzes Spotify tracks based on audio features to help you build and curate playlists. This tool is a companion to create musical experiences tailored to specific moods, genres, or other criteria.
 
 ## Features
 
-- **Track Clustering:** Group tracks based on metadata like genre, mood, tempo, and more.
-- **Automatic Playlist Creation:** Generate playlists automatically based on user-defined criteria.
-- **Customizable:** Easily modify the clustering and playlist criteria to suit your preferences.
+- **Home**: Get an overview of the app and provide playlist IDs to analyze
+- **Track List**: View the tracks in the playlists with their audio features
+- **Audio Feature Comparison**: Compare audio features accross playlists like energy, danceability, and more
+- **Audio Feature Distribution**: Visualize the distribution of audio features within playlists
+- **Statistical tests**: Perform statistical tests to compare audio features across playlists (COMING SOON)
+- **Modeling**: Build, train and tune a Deep Learning model to understand the audio features and predict the ideal playlist for a track
+- **Recommendations**: Get playlist recommendations for a unseen track using the trained model
+- **Playlist Management**: Curate a playlist by deciding whether to add a new tracks based on its features
+
 
 ## Defining Your Playlists
 Before running the project, you should define your selected playlists by creating a CSV file with the following structure.
