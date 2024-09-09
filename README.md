@@ -2,12 +2,15 @@
 
 Spotify Autoplaylists is an interactive web application designed to automatically retrieve, analyze, and curate Spotify playlists based on audio features. This tool allows you to create musical experiences tailored to specific moods, genres, or other preferences by leveraging the power of data and machine learning.
 
+![home Image](images/home_page.png)
 
 ## Features
 
 - Retrieve all tracks from a playlist along with their audio features
 - Analyze and compare what audio characteristics (e.g., energy, danceability) differentiate various playlists
 - Use AI models to get recommendation for tracks or playlists
+
+![home Image](images/feature_histogram.png)
 
 ## Sections
 
@@ -60,6 +63,8 @@ This application is built using **Python** and **Streamlit**.
     Electro chill,37i9dQZF1DX9ND1QF5hZNF
     Hard Rock,37i9dQZF1DX1X7WV84927n
     ```
+
+![home Image](images/recommendation.png)
 
 ## Running the Application
 

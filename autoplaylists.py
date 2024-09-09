@@ -432,24 +432,29 @@ with tabs[5]:
                 # subheader with track name and artist
                 st.subheader(f"{track_recommendation['name'].values[0]} by {track_recommendation['artist'].values[0]}")
 
-                # Embed the audio preview
-                preview_url = track_recommendation["preview_url"].values[0]
-                if pd.notna(preview_url):  # Ensure the URL is not NaN
-                    st.audio(preview_url)
-                else:
-                    st.write("No audio preview available for this track.")
-
-                # display recommendation
-                st.write("Best Playlist recommendation:", track_recommendation["predicted_label"].values[0])
-                st.write(
-                    "Probability score:", round(track_recommendation["predicted_probability"].values[0] * 100, 2), "%"
-                )
-
                 # extracting dict of playlist and probabilities
                 prob_dict = track_recommendation["all_probabilities"].values[0]
 
                 col = st.columns(4)
+
                 with col[0]:
+                    # Embed the audio preview
+                    preview_url = track_recommendation["preview_url"].values[0]
+                    if pd.notna(preview_url):  # Ensure the URL is not NaN
+                        st.audio(preview_url)
+                    else:
+                        st.write("No audio preview available for this track.")
+
+                    # display recommendation
+                    st.write(
+                        "Best Playlist recommendation:", "`", track_recommendation["predicted_label"].values[0], "`"
+                    )
+                    st.write(
+                        "Probability score:",
+                        round(track_recommendation["predicted_probability"].values[0] * 100, 2),
+                        "%",
+                    )
+                with col[1]:
                     fig, ax = plt.subplots()
                     sns.barplot(x=list(prob_dict.keys()), y=list(prob_dict.values()), ax=ax, palette=palette)
                     plt.xticks(rotation=45, ha="right")
