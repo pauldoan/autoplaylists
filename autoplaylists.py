@@ -62,7 +62,7 @@ with tabs[0]:
     # Input field
     playlist_ids = st.text_area(
         "Enter Playlist IDs (comma-separated)",
-        "37i9dQZF1DX9ND1QF5hZNF,37i9dQZF1DX1X7WV84927n,37i9dQZF1DX9sQDbOMReFI,37i9dQZF1DX1lVhptIYRda,37i9dQZF1DWTKxc7ZObqeH",
+        "37i9dQZF1DXbXD9pMSZomS,37i9dQZF1DX1X7WV84927n,37i9dQZF1DX9sQDbOMReFI,37i9dQZF1DX1lVhptIYRda,37i9dQZF1DWTKxc7ZObqeH",
     )
     playlist_ids = [pid.strip() for pid in playlist_ids.split(",")]
 
