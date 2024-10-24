@@ -1,17 +1,17 @@
 import streamlit as st
 import pandas as pd
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# importing the scripts
+import scripts.spotify_api as spotify_api
+import scripts.modeling as modeling
 
 # Set the theme for better aesthetics
 sns.set_theme(style="whitegrid")
 # Create a custom color palette
 palette = sns.color_palette("Set2")
 
-# importing the scripts
-import scripts.spotify_api as spotify_api
-import scripts.modeling as modeling
 
 # app title
 st.set_page_config(page_title="Spotify Autoplaylists", layout="wide")
@@ -36,7 +36,6 @@ tabs = st.tabs(
 # ---------------------------------------------------------------------------- #
 
 with tabs[0]:
-
     st.subheader("Welcome to the Spotify Autoplaylists App")
 
     # Add a brief description of the app
@@ -60,29 +59,29 @@ with tabs[0]:
     )
 
     # Input field
-    playlist_ids = st.text_area(
-        "Enter Playlist IDs (comma-separated)",
-        "37i9dQZF1DXbXD9pMSZomS,37i9dQZF1DX1X7WV84927n,37i9dQZF1DX9sQDbOMReFI,37i9dQZF1DX1lVhptIYRda,37i9dQZF1DWTKxc7ZObqeH",
+    playlist_urls = st.text_area(
+        "Enter Playlist URLs (comma-separated)",
+        "https://open.spotify.com/playlist/37i9dQZF1DXbXD9pMSZomS,https://open.spotify.com/playlist/37i9dQZF1DX1X7WV84927n,https://open.spotify.com/playlist/37i9dQZF1DX9sQDbOMReFI,https://open.spotify.com/playlist/37i9dQZF1DX1lVhptIYRda,https://open.spotify.com/playlist/37i9dQZF1DWTKxc7ZObqeH",
     )
-    playlist_ids = [pid.strip() for pid in playlist_ids.split(",")]
+    playlist_urls = [url.strip() for url in playlist_urls.split(",")]
 
     # Button to submit the input
     if st.button("Analyze Playlists 🎵"):
-
         with st.spinner("Fetching playlist data from Spotify... 🚀"):
-
             # fetching playlist data
             metadata_df = pd.DataFrame()
             tracks_df = pd.DataFrame()
 
             # looping through all the playlists
-            for playlist_id in playlist_ids:
+            for playlist_url in playlist_urls:
                 # getting the metadata
-                metadata = pd.DataFrame([spotify_api.get_playlist_metadata(playlist_id)])
+                metadata = pd.DataFrame(
+                    [spotify_api.get_playlist_metadata(playlist_url)]
+                )
                 # saving
                 metadata_df = pd.concat([metadata_df, metadata])
                 # getting the tracks
-                track_list = spotify_api.get_playlist_tracks(playlist_id)
+                track_list = spotify_api.get_playlist_tracks(playlist_url)
                 # saving tracks
                 tracks_df = pd.concat([tracks_df, track_list])
 
@@ -93,7 +92,9 @@ with tabs[0]:
             tracks_df = tracks_df.merge(audio_features, on="id")
 
             # merging the dataframes to get the playlist name
-            tracks_df = tracks_df.merge(metadata_df[["playlist_name", "playlist_id"]], on="playlist_id")
+            tracks_df = tracks_df.merge(
+                metadata_df[["playlist_name", "playlist_id"]], on="playlist_id"
+            )
 
             # Store the data in session state
             st.session_state["metadata_df"] = metadata_df
@@ -103,13 +104,21 @@ with tabs[0]:
         st.subheader("Playlist Information")
 
         # Convert the image URLs to HTML image tags
-        metadata_df["image"] = metadata_df["image"].apply(lambda x: f'<img src="{x}" width="60" height="60">')
+        metadata_df["image"] = metadata_df["image"].apply(
+            lambda x: f'<img src="{x}" width="60" height="60">'
+        )
         # Convert the playlist URLs to clickable links
-        metadata_df["link"] = metadata_df["link"].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
+        metadata_df["link"] = metadata_df["link"].apply(
+            lambda x: f'<a href="{x}" target="_blank">Link</a>'
+        )
 
         # Render the DataFrame in Streamlit with images
-        metadata_df = metadata_df[["image", "playlist_name", "owner", "description", "followers", "link"]]
-        st.markdown(metadata_df.to_html(escape=False, index=False), unsafe_allow_html=True)
+        metadata_df = metadata_df[
+            ["image", "playlist_name", "owner", "description", "followers", "link"]
+        ]
+        st.markdown(
+            metadata_df.to_html(escape=False, index=False), unsafe_allow_html=True
+        )
 
         # Done
         st.success("Analysis complete! Switch to other tabs to view results.")
@@ -122,13 +131,21 @@ with tabs[0]:
         metadata_df = st.session_state["metadata_df"]
 
         # Convert the image URLs to HTML image tags
-        metadata_df["image"] = metadata_df["image"].apply(lambda x: f'<img src="{x}" width="60" height="60">')
+        metadata_df["image"] = metadata_df["image"].apply(
+            lambda x: f'<img src="{x}" width="60" height="60">'
+        )
         # Convert the playlist URLs to clickable links
-        metadata_df["link"] = metadata_df["link"].apply(lambda x: f'<a href="{x}" target="_blank">Link</a>')
+        metadata_df["link"] = metadata_df["link"].apply(
+            lambda x: f'<a href="{x}" target="_blank">Link</a>'
+        )
 
         # Render the DataFrame in Streamlit with images
-        metadata_df = metadata_df[["image", "playlist_name", "owner", "description", "followers", "link"]]
-        st.markdown(metadata_df.to_html(escape=False, index=False), unsafe_allow_html=True)
+        metadata_df = metadata_df[
+            ["image", "playlist_name", "owner", "description", "followers", "link"]
+        ]
+        st.markdown(
+            metadata_df.to_html(escape=False, index=False), unsafe_allow_html=True
+        )
 
 
 # ---------------------------------------------------------------------------- #
@@ -136,15 +153,18 @@ with tabs[0]:
 # ---------------------------------------------------------------------------- #
 
 with tabs[1]:
-
     if "tracks_df" in st.session_state:
         st.header("Track List")
 
         # streamlist select box for selecting playlist
-        selected_playlist = st.selectbox("Select a Playlist", st.session_state["tracks_df"]["playlist_name"].unique())
+        selected_playlist = st.selectbox(
+            "Select a Playlist", st.session_state["tracks_df"]["playlist_name"].unique()
+        )
 
         # filter the tracks
-        tracks = st.session_state["tracks_df"][st.session_state["tracks_df"]["playlist_name"] == selected_playlist]
+        tracks = st.session_state["tracks_df"][
+            st.session_state["tracks_df"]["playlist_name"] == selected_playlist
+        ]
 
         # extract artist name for easier reading
         tracks["artist"] = tracks["artists"].apply(lambda x: x[0]["name"])
@@ -161,7 +181,9 @@ with tabs[1]:
         ]
 
         # filter dataframe for better display
-        tracks = tracks[["id", "name", "artist", "duration_ms", "popularity"] + feature_options]
+        tracks = tracks[
+            ["id", "name", "artist", "duration_ms", "popularity"] + feature_options
+        ]
 
         # display the track list
         st.dataframe(tracks)
@@ -178,7 +200,9 @@ with tabs[2]:
     if "tracks_df" in st.session_state:
         st.header("Audio Feature Comparison Across Playlists")
 
-        st.markdown("""In this section, you can compare the audio features of the tracks across different playlists.""")
+        st.markdown(
+            """In this section, you can compare the audio features of the tracks across different playlists."""
+        )
 
         # Define available features for the multiselect menu
         feature_options = [
@@ -195,13 +219,17 @@ with tabs[2]:
 
         # Streamlit multiselect menu for selecting features
         selected_features = st.multiselect(
-            "Select features to analyze", feature_options, default=["energy", "danceability", "loudness"]
+            "Select features to analyze",
+            feature_options,
+            default=["energy", "danceability", "loudness"],
         )
 
         # Check if any features are selected
         if selected_features:
             # Filter DataFrame
-            df_features = st.session_state["tracks_df"][selected_features + ["playlist_name"]]
+            df_features = st.session_state["tracks_df"][
+                selected_features + ["playlist_name"]
+            ]
 
             # Create columns for better layout
             cols = st.columns(3)
@@ -209,10 +237,15 @@ with tabs[2]:
             # Loop through each selected feature and create a barplot
             for idx, feature in enumerate(selected_features):
                 with cols[idx % 3]:
-
                     # Create plot per feature
                     fig, ax = plt.subplots(figsize=(6, 4), dpi=150)
-                    sns.barplot(data=df_features, y="playlist_name", x=feature, palette="muted", ax=ax)
+                    sns.barplot(
+                        data=df_features,
+                        y="playlist_name",
+                        x=feature,
+                        palette="muted",
+                        ax=ax,
+                    )
 
                     # Titles and labels
                     ax.set_xlabel(f"{feature.capitalize()}")
@@ -235,7 +268,9 @@ with tabs[3]:
     if "tracks_df" in st.session_state:
         st.header("In-Playlist Feature Histograms")
 
-        st.markdown("""In this section, you can visualize the distrbution of audio features within playlists.""")
+        st.markdown(
+            """In this section, you can visualize the distrbution of audio features within playlists."""
+        )
 
         # allow user to select the feature with multiselect menu on streamlit
         features_options = [
@@ -251,16 +286,19 @@ with tabs[3]:
         ]
         # build streamlit multi-select menu
         features = st.multiselect(
-            "Select features to analyze", features_options, default=["acousticness", "energy", "valence"]
+            "Select features to analyze",
+            features_options,
+            default=["acousticness", "energy", "valence"],
         )
         # Create columns for better layout
         cols = st.columns(3)
 
         for idx, feature in enumerate(features):
             with cols[idx % 3]:
-
                 # Create a responsive plot
-                fig, ax = plt.subplots(figsize=(6, 4), dpi=150)  # Smaller figure size for more responsive plots
+                fig, ax = plt.subplots(
+                    figsize=(6, 4), dpi=150
+                )  # Smaller figure size for more responsive plots
                 sns.histplot(
                     data=st.session_state["tracks_df"],
                     x=feature,
@@ -322,33 +360,44 @@ with tabs[4]:
             st.session_state["model_trained"] = False
 
         # Handle the button for building/retraining the model
-        button_label = "Retrain Model" if st.session_state["model_trained"] else "Build and Train Model"
+        button_label = (
+            "Retrain Model"
+            if st.session_state["model_trained"]
+            else "Build and Train Model"
+        )
 
         if st.button(button_label):
-
             with st.spinner("Building & Training Neural Network... 🤖"):
                 # Build and train/retrain the model
-                model, label_encoder, scaler, history, class_report = modeling.build_train(
-                    st.session_state["tracks_df"],
-                    epochs=epochs,
-                    hidden_sizes=hidden_sizes,
-                    lr=lr,
-                    dropout=dropout,
+                model, label_encoder, scaler, history, class_report = (
+                    modeling.build_train(
+                        st.session_state["tracks_df"],
+                        epochs=epochs,
+                        hidden_sizes=hidden_sizes,
+                        lr=lr,
+                        dropout=dropout,
+                    )
                 )
 
                 # Store the model and other objects in session state
                 st.session_state["model"] = model
                 st.session_state["label_encoder"] = label_encoder
                 st.session_state["scaler"] = scaler
-                st.session_state["model_trained"] = True  # Update flag once model is trained
+                st.session_state["model_trained"] = (
+                    True  # Update flag once model is trained
+                )
 
                 # Success message
                 st.success(f"{button_label} completed successfully!")
 
                 # Print the main performance metrics
                 st.subheader("Classification Report")
-                accuracy = round(class_report.loc[["accuracy"], :].iloc[:, 0].values[0], 3)
-                weighted_f1 = round(class_report.loc[["weighted avg"], "f1-score"].values[0], 3)
+                accuracy = round(
+                    class_report.loc[["accuracy"], :].iloc[:, 0].values[0], 3
+                )
+                weighted_f1 = round(
+                    class_report.loc[["weighted avg"], "f1-score"].values[0], 3
+                )
                 st.write(f"Model Accuracy: {accuracy}")
                 st.write(f"Weighted F1 Score: {weighted_f1}")
                 st.dataframe(class_report)
@@ -393,44 +442,51 @@ with tabs[4]:
 
 with tabs[5]:
     if "model" in st.session_state:
-        st.header("Playlist features modeling")
+        st.header("Playlist Recommendations")
 
         st.markdown(
             """This section allows you to get playlist recommendations for a track based on its audio features."""
         )
 
-        # streamlit input for track ids
-        track_ids = st.text_input(
-            "Enter Track IDs (comma-separated)",
-            "0mflMxspEfB0VbI1kyLiAv,6oanIhkNbxXnX19RTtkpEL,7KwZNVEaqikRSBSpyhXK2j",
+        # streamlit input for track urls
+        track_urls = st.text_input(
+            "Enter Track URLs (comma-separated)",
+            "https://open.spotify.com/track/0mflMxspEfB0VbI1kyLiAv,https://open.spotify.com/track/6oanIhkNbxXnX19RTtkpEL,https://open.spotify.com/track/7KwZNVEaqikRSBSpyhXK2j",
             key=0,
         )
-
-        # get tracks meta
-        track_meta = spotify_api.get_tracks_metadata(track_ids)
-
-        # hit spotify API
-        af = spotify_api.get_audio_features(track_ids)
-        # merge metadata and audio features
-        track_df = pd.merge(track_meta, af, on="id")
-        # extract artist name for easier reading
-        track_df["artist"] = track_df["artists"].apply(lambda x: x[0]["name"])
+        track_urls = [url.strip() for url in track_urls.split(",")]
 
         # streamlit button for getting recommendations
         if st.button("Get Recommendations"):
+            # get tracks meta
+            track_meta = spotify_api.get_tracks_metadata(track_urls)
+
+            # hit spotify API
+            af = spotify_api.get_audio_features(track_urls)
+            # merge metadata and audio features
+            track_df = pd.merge(track_meta, af, on="id")
+            # extract artist name for easier reading
+            track_df["artist"] = track_df["artists"].apply(lambda x: x[0]["name"])
+
             # get the recommendations
             recommendations = modeling.model_inference(
-                track_df, st.session_state["model"], st.session_state["scaler"], st.session_state["label_encoder"]
+                track_df,
+                st.session_state["model"],
+                st.session_state["scaler"],
+                st.session_state["label_encoder"],
             )
 
             # looping trhough track ids
             for track_id in recommendations.id.unique():
-
                 # extract data from recommendations dataframe
-                track_recommendation = recommendations[recommendations["id"] == track_id]
+                track_recommendation = recommendations[
+                    recommendations["id"] == track_id
+                ]
 
                 # subheader with track name and artist
-                st.subheader(f"{track_recommendation['name'].values[0]} by {track_recommendation['artist'].values[0]}")
+                st.subheader(
+                    f"{track_recommendation['name'].values[0]} by {track_recommendation['artist'].values[0]}"
+                )
 
                 # extracting dict of playlist and probabilities
                 prob_dict = track_recommendation["all_probabilities"].values[0]
@@ -447,16 +503,28 @@ with tabs[5]:
 
                     # display recommendation
                     st.write(
-                        "Best Playlist recommendation:", "`", track_recommendation["predicted_label"].values[0], "`"
+                        "Best Playlist recommendation:",
+                        "`",
+                        track_recommendation["predicted_label"].values[0],
+                        "`",
                     )
                     st.write(
                         "Probability score:",
-                        round(track_recommendation["predicted_probability"].values[0] * 100, 2),
+                        round(
+                            track_recommendation["predicted_probability"].values[0]
+                            * 100,
+                            2,
+                        ),
                         "%",
                     )
                 with col[1]:
                     fig, ax = plt.subplots()
-                    sns.barplot(x=list(prob_dict.keys()), y=list(prob_dict.values()), ax=ax, palette=palette)
+                    sns.barplot(
+                        x=list(prob_dict.keys()),
+                        y=list(prob_dict.values()),
+                        ax=ax,
+                        palette=palette,
+                    )
                     plt.xticks(rotation=45, ha="right")
                     st.pyplot(fig)
 
@@ -478,31 +546,36 @@ with tabs[6]:
 
         # streamlit input for selecting a target playlist
         target_playlist = st.selectbox(
-            "Select a target playlist", st.session_state["tracks_df"]["playlist_name"].unique()
+            "Select a target playlist",
+            st.session_state["tracks_df"]["playlist_name"].unique(),
         )
 
-        # streamlit input for track ids
-        track_ids_include = st.text_input(
-            "Enter Track IDs (comma-separated)",
-            "0mflMxspEfB0VbI1kyLiAv,6oanIhkNbxXnX19RTtkpEL,7KwZNVEaqikRSBSpyhXK2j",
+        # streamlit input for track urls
+        track_urls_include = st.text_input(
+            "Enter Track URLs (comma-separated)",
+            "https://open.spotify.com/track/0mflMxspEfB0VbI1kyLiAv,https://open.spotify.com/track/6oanIhkNbxXnX19RTtkpEL,https://open.spotify.com/track/7KwZNVEaqikRSBSpyhXK2j",
             key=1,
         )
+        track_urls_include = [url.strip() for url in track_urls_include.split(",")]
 
         # slider for probability threshold
-        probability_threshold = st.slider("Select probability threshold", 0.5, 1.0, 0.75)
+        probability_threshold = st.slider(
+            "Select probability threshold", 0.5, 1.0, 0.75
+        )
 
         # streamlit button for getting include recommendations
         if st.button("Include Tracks"):
-
             # get tracks meta
-            track_meta_include = spotify_api.get_tracks_metadata(track_ids_include)
+            track_meta_include = spotify_api.get_tracks_metadata(track_urls_include)
 
             # hit spotify API
-            af_include = spotify_api.get_audio_features(track_ids_include)
+            af_include = spotify_api.get_audio_features(track_urls_include)
             # merge metadata and audio features
             track_df_include = pd.merge(track_meta_include, af_include, on="id")
             # extract artist name for easier reading
-            track_df_include["artist"] = track_df_include["artists"].apply(lambda x: x[0]["name"])
+            track_df_include["artist"] = track_df_include["artists"].apply(
+                lambda x: x[0]["name"]
+            )
 
             # running inference
             include_df = modeling.include_tracks_to_playlist(
@@ -516,15 +589,18 @@ with tabs[6]:
 
             # looping trhough track ids
             for track_id in include_df.id.unique():
-
                 # extract data from recommendations dataframe
                 track_include = include_df[include_df["id"] == track_id]
 
                 # subheader with track name and artist
-                st.subheader(f"{track_include['name'].values[0]} by {track_include['artist'].values[0]}")
+                st.subheader(
+                    f"{track_include['name'].values[0]} by {track_include['artist'].values[0]}"
+                )
 
                 # Embed the audio preview
-                preview_url = track_df_include[track_df_include.id == track_id]["preview_url"].values[0]
+                preview_url = track_df_include[track_df_include.id == track_id][
+                    "preview_url"
+                ].values[0]
                 if pd.notna(preview_url):  # Ensure the URL is not NaN
                     st.audio(preview_url)
                 else:
@@ -532,11 +608,20 @@ with tabs[6]:
 
                 # display recommendation
                 st.write(
-                    "Probability score:", round(track_include["target_playlist_probability"].values[0] * 100, 2), "%"
+                    "Probability score:",
+                    round(
+                        track_include["target_playlist_probability"].values[0] * 100, 2
+                    ),
+                    "%",
                 )
 
                 # display flag for inclusion
-                st.write("Include in playlist:", track_include["include_in_playlist"].values[0])
+                st.write(
+                    "Include in playlist:",
+                    track_include["include_in_playlist"].values[0],
+                )
 
     else:
         st.warning("Please train a model first.")
+
+
