@@ -451,7 +451,7 @@ with tabs[5]:
         # streamlit input for track urls
         track_urls = st.text_input(
             "Enter Track URLs (comma-separated)",
-            "https://open.spotify.com/track/0mflMxspEfB0VbI1kyLiAv,https://open.spotify.com/track/6oanIhkNbxXnX19RTtkpEL,https://open.spotify.com/track/7KwZNVEaqikRSBSpyhXK2j",
+            "https://open.spotify.com/track/2nLtzopw4rPReszdYBJU6h?si=d9e7898a46bd4b19,https://open.spotify.com/track/4zxd4tiXPlWMqoJltbVTbE?si=07b8a1ad41fa4b39,https://open.spotify.com/track/7KwZNVEaqikRSBSpyhXK2j",
             key=0,
         )
         track_urls = [url.strip() for url in track_urls.split(",")]
@@ -553,7 +553,7 @@ with tabs[6]:
         # streamlit input for track urls
         track_urls_include = st.text_input(
             "Enter Track URLs (comma-separated)",
-            "https://open.spotify.com/track/0mflMxspEfB0VbI1kyLiAv,https://open.spotify.com/track/6oanIhkNbxXnX19RTtkpEL,https://open.spotify.com/track/7KwZNVEaqikRSBSpyhXK2j",
+            "https://open.spotify.com/track/2nLtzopw4rPReszdYBJU6h?si=d9e7898a46bd4b19,https://open.spotify.com/track/4zxd4tiXPlWMqoJltbVTbE?si=07b8a1ad41fa4b39,https://open.spotify.com/track/7KwZNVEaqikRSBSpyhXK2j",
             key=1,
         )
         track_urls_include = [url.strip() for url in track_urls_include.split(",")]
